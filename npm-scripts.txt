@@ -1,0 +1,80 @@
+# NPM Scripts for UrlTiny
+
+Add these scripts to your package.json:
+
+```json
+{
+  "scripts": {
+    "start": "node index.js",
+    "dev": "concurrently \"npm run dev:server\" \"npm run dev:client\"",
+    "dev:server": "node scripts/dev-server.js",
+    "dev:client": "node scripts/dev-client.js",
+    "build": "vite build",
+    "test": "jest",
+    "test:watch": "jest --watch",
+    "test:coverage": "jest --coverage",
+    "lint": "eslint .",
+    "lint:fix": "eslint . --fix",
+    "format": "prettier --write .",
+    "db:migrate": "node scripts/db-migrate.js",
+    "db:push": "node scripts/db-push.js",
+    "docker:build": "docker build -t urltiny:latest .",
+    "docker:run": "docker run -p 3000:3000 --env-file .env urltiny:latest",
+    "aws:push": "bash ecr-push.sh",
+    "terraform:plan": "cd terraform && ./deploy.sh --plan",
+    "terraform:apply": "cd terraform && ./deploy.sh --apply",
+    "deploy": "npm run build && npm run aws:push && npm run terraform:apply"
+  }
+}
+```
+
+## How to use these scripts:
+
+1. **Start the application in production mode**:
+   ```
+   npm start
+   ```
+
+2. **Run the application in development mode**:
+   ```
+   npm run dev
+   ```
+
+3. **Build the application**:
+   ```
+   npm run build
+   ```
+
+4. **Run tests**:
+   ```
+   npm test
+   npm run test:watch
+   npm run test:coverage
+   ```
+
+5. **Lint and format code**:
+   ```
+   npm run lint
+   npm run lint:fix
+   npm run format
+   ```
+
+6. **Database operations**:
+   ```
+   npm run db:migrate
+   npm run db:push
+   ```
+
+7. **Docker operations**:
+   ```
+   npm run docker:build
+   npm run docker:run
+   ```
+
+8. **AWS and Terraform operations**:
+   ```
+   npm run aws:push
+   npm run terraform:plan
+   npm run terraform:apply
+   npm run deploy
+   ```

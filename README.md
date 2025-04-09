@@ -1,134 +1,175 @@
-# URL Shortener Application
+# URL Shortener
 
-A modern URL shortener application built with Vue.js frontend and Node.js backend, using PostgreSQL for persistent storage of shortened URLs.
+A URL shortener application built with Vue.js on the frontend and Node.js with Express on the backend. This application allows users to shorten long URLs and provides a simple, shareable link.
 
 ## Features
 
-- Easy-to-use interface for shortening long URLs
-- Secure hash generation for shortened URLs
-- Copy-to-clipboard functionality
-- Permanent storage of URL mappings in PostgreSQL database
-- Automatic redirection from shortened URLs to original destinations
-- RESTful API for integrating with other applications
+- Shorten URLs with a simple form
+- Copy shortened URLs to clipboard
+- Redirect to original URL when visiting a shortened link
+- PostgreSQL database for URL storage
+- Responsive design for mobile and desktop
 
-## Tech Stack
+## Technology Stack
 
-- **Frontend**: Vue.js 3, Axios for API requests
-- **Backend**: Node.js, Express.js
+- **Frontend**: Vue 3, Axios, Vite
+- **Backend**: Node.js, Express
 - **Database**: PostgreSQL
-- **Build Tools**: Vite
+- **ORM**: Drizzle ORM
+- **Testing**: Jest, Vue Test Utils, Supertest
+- **CI/CD**: GitHub Actions
+- **Code Quality**: ESLint, Prettier, Husky, lint-staged
+- **Infrastructure**: Docker, AWS, Terraform
 
 ## Prerequisites
 
-- Node.js (v14 or higher)
+- Node.js (v16 or later)
 - PostgreSQL database
-- npm or yarn
+- Docker (for containerized deployment)
+- AWS CLI (for AWS deployment)
+- Terraform (for infrastructure as code)
 
-## Environment Variables
+## Getting Started
 
-Create a `.env` file in the root directory with the following variables:
+### Environment Setup
 
-```
-PORT=8000
-DATABASE_URL=postgresql://username:password@hostname:port/database
-```
+1. Clone the repository:
+   ```bash
+   git clone https://github.com/yourusername/url-shortener.git
+   cd url-shortener
+   ```
 
-## Development Setup
+2. Install dependencies:
+   ```bash
+   npm install
+   ```
 
-Follow these steps to set up the project for development:
+3. Create a `.env` file in the root directory with the following variables:
+   ```
+   DATABASE_URL=postgresql://username:password@localhost:5432/url_shortener
+   PORT=3000
+   ```
 
-1. **Clone the repository**
+### Running the application
 
-```bash
-git clone <repository-url>
-cd url-shortener
-```
+1. Start the development server:
+   ```bash
+   npm run dev
+   ```
 
-2. **Install dependencies**
-
-```bash
-npm install
-```
-
-3. **Set up the database**
-
-Ensure your PostgreSQL database is running and accessible with the credentials specified in your `.env` file.
-
-4. **Run in development mode**
-
-For development with hot-reloading of the frontend:
-
-```bash
-# Terminal 1: Run the backend
-npm run dev:server
-
-# Terminal 2: Run the frontend dev server
-npm run dev:client
-```
-
-This will start the backend server on port 8000 and the development server for the frontend.
-
-## Production Deployment
-
-For production deployment:
-
-1. **Build the frontend**
-
-```bash
-npm run build
-```
-
-2. **Start the production server**
-
-```bash
-npm start
-```
-
-This will build the Vue.js frontend and start the server that serves both the frontend assets and the API endpoints.
+2. The application will be running at:
+   - Backend API: `http://localhost:3000`
+   - Frontend: `http://localhost:8000`
 
 ## Project Structure
 
 ```
 url-shortener/
-├── db/                   # Database configuration and schema
-│   ├── index.js
-│   └── schema.js
-├── public/               # Static assets
-│   ├── index.html
-│   ├── style.css
-│   └── dist/             # Built frontend assets (generated)
+├── db/                 # Database setup and migrations
+├── server/             # Server-side TypeScript files
+├── shared/             # Shared TypeScript definitions
 ├── src/
-│   ├── backend/          # Backend code
-│   │   ├── routes.js     # API routes
-│   │   ├── server.js     # Express server setup
-│   │   └── urlService.js # URL shortening logic
-│   └── frontend/         # Frontend code
-│       ├── App.vue       # Main Vue component
-│       └── main.js       # Vue entry point
-├── .env                  # Environment variables
-├── build.js              # Build script
-├── index.js              # Application entry point
-├── package.json          # Dependencies and scripts
-└── vite.config.js        # Vite configuration
+│   ├── backend/        # Backend Node.js application
+│   └── frontend/       # Frontend Vue.js application
+├── terraform/          # Terraform infrastructure as code
+│   ├── modules/        # Reusable Terraform modules
+│   ├── main.tf         # Main Terraform configuration
+│   ├── variables.tf    # Terraform variables
+│   └── outputs.tf      # Terraform outputs
+├── tests/
+│   └── unit/           # Unit tests
+├── .github/
+│   └── workflows/      # GitHub Actions workflows
+├── public/             # Static assets
+├── Dockerfile          # Docker configuration for containerization
+├── .dockerignore       # Files to ignore in Docker build
+├── .eslintrc.js        # ESLint configuration
+├── .prettierrc         # Prettier configuration
+├── jest.config.js      # Jest configuration
+└── vite.config.js      # Vite configuration
 ```
 
 ## API Endpoints
 
-- `POST /api/shorten` - Shortens a URL
-  - Request body: `{ "url": "https://example.com/long/url" }`
+- `POST /api/shorten`: Shortens a URL
+  - Request Body: `{ "url": "https://example.com" }`
   - Response: `{ "shortUrl": "abc123" }`
 
-- `GET /:hash` - Redirects to the original URL
+- `GET /:hash`: Redirects to the original URL
 
-## Scaling Considerations
+## Development
 
-For high-traffic scenarios:
+### Code Linting and Formatting
 
-- Consider adding Redis caching for frequently accessed URLs
-- Implement rate limiting to prevent abuse
-- Set up horizontal scaling with multiple application instances
-- Add monitoring and analytics
+```bash
+# Run ESLint
+npm run lint
+
+# Fix ESLint issues
+npm run lint:fix
+
+# Format code with Prettier
+npm run format
+```
+
+### Testing
+
+```bash
+# Run all tests
+npm test
+
+# Run tests with coverage
+npm run test:coverage
+
+# Run tests in watch mode
+npm run test:watch
+```
+
+## Deployment
+
+The application can be deployed in multiple ways:
+
+1. **Manual Deployment**: Deploy to any platform that supports Node.js applications.
+
+2. **Docker Deployment**: Deploy using Docker for containerization.
+   ```bash
+   # Build Docker image
+   docker build -t urltiny:latest .
+
+   # Run Docker container
+   docker run -p 3000:3000 -e DATABASE_URL=postgresql://username:password@host:port/database urltiny:latest
+   ```
+
+3. **AWS ECS with Terraform**: Deploy to AWS Elastic Container Service using Terraform for infrastructure as code.
+   ```bash
+   # Navigate to Terraform directory
+   cd terraform
+
+   # Initialize Terraform
+   terraform init
+
+   # Apply Terraform configuration
+   terraform apply
+   ```
+
+For detailed deployment instructions, see [DEPLOYMENT.md](DEPLOYMENT.md).
+
+### Database Migrations
+
+For development environments, the application will automatically create the required tables on startup. For production environments, we use a more controlled approach:
+
+1. Using Drizzle ORM's schema definitions in `shared/schema.ts`
+2. Using the database migration scripts in the `scripts` directory
+3. For AWS deployments, database migrations are handled during the ECS container startup
+
+## Contributing
+
+1. Fork the repository
+2. Create a feature branch: `git checkout -b feature/new-feature`
+3. Commit your changes: `git commit -am 'Add new feature'`
+4. Push to the branch: `git push origin feature/new-feature`
+5. Submit a pull request
 
 ## License
 
-[MIT License](LICENSE)
+This project is licensed under the MIT License - see the LICENSE file for details.

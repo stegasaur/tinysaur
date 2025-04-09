@@ -1,0 +1,44 @@
+# Version control
+.git
+.gitignore
+
+# Node.js dependencies
+node_modules
+npm-debug.log
+
+# Build artifacts
+.npm
+.eslintcache
+
+# Development files
+.vscode
+.idea
+*.swp
+*.swo
+
+# Environment files
+.env
+.env.*
+!.env.example
+
+# Test files
+__tests__
+tests
+coverage
+
+# Documentation
+docs
+README.md
+CONTRIBUTING.md
+DEPLOYMENT.md
+
+# Terraform files
+terraform
+.terraform
+*.tfstate
+*.tfvars
+*.tfplan
+
+# Other unnecessary files
+.DS_Store
+*.log
