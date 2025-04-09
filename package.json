@@ -3,6 +3,11 @@
   "version": "1.0.0",
   "main": "index.js",
   "scripts": {
+    "start": "node index.js",
+    "dev": "concurrently \"npm run dev:server\" \"npm run dev:client\"",
+    "dev:server": "node scripts/dev-server.js",
+    "dev:client": "node scripts/dev-client.js",
+    "build": "vite build",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "keywords": [],
@@ -12,6 +17,7 @@
   "dependencies": {
     "@vitejs/plugin-vue": "^5.2.3",
     "axios": "^1.8.4",
+    "concurrently": "^9.1.2",
     "crypto": "^1.0.1",
     "dotenv": "^16.4.7",
     "drizzle-orm": "^0.41.0",
