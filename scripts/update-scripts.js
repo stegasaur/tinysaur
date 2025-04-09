@@ -1,3 +1,7 @@
+/* eslint-env browser, node, es2021 */
+/* eslint "eslint:recommended" */
+/* prettier singleQuote:true, semi:false */
+
 // Script to programmatically update package.json scripts
 const fs = require('fs');
 const path = require('path');
@@ -15,7 +19,10 @@ packageJson.scripts = {
   "dev:server": "node scripts/dev-server.js",
   "dev:client": "node scripts/dev-client.js",
   "build": "vite build",
-  "test": "echo \"Error: no test specified\" && exit 1"
+  "test": "jest",
+  "lint": "eslint .",
+  "format": "prettier --write .",
+  "prepare": "husky install"
 };
 
 // Write the updated package.json

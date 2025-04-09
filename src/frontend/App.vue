@@ -1,3 +1,7 @@
+/* eslint-env browser, node, es2021 */
+/* eslint "eslint:recommended", "plugin:vue/vue3-recommended" */
+/* prettier singleQuote:true, semi:false */
+
 <template>
   <div class="container">
     <div class="header">

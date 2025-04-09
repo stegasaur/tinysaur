@@ -120,6 +120,40 @@ url-shortener/
 
 - `GET /:hash` - Redirects to the original URL
 
+## Running ESLint
+
+To run ESLint and check for linting errors:
+
+```bash
+npm run lint
+```
+
+## Running Prettier
+
+To run Prettier and format the code:
+
+```bash
+npm run format
+```
+
+## Running Jest Tests
+
+To run Jest tests:
+
+```bash
+npm run test
+```
+
+## Using Husky
+
+Husky is used to manage Git hooks. To set up Husky, run:
+
+```bash
+npm run prepare
+```
+
+This will install the necessary Git hooks for pre-commit checks.
+
 ## Scaling Considerations
 
 For high-traffic scenarios:

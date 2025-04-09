@@ -1,3 +1,7 @@
+/* eslint-env browser, node, es2021 */
+/* eslint "eslint:recommended" */
+/* prettier singleQuote:true, semi:false */
+
 const { pool, initializeDatabase } = require('./schema');
 
 // Function to store a URL and its hash

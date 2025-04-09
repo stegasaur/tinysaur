@@ -1,3 +1,7 @@
+/* eslint-env browser, node, es2021 */
+/* eslint "eslint:recommended" */
+/* prettier singleQuote:true, semi:false */
+
 const { build } = require('vite');
 const path = require('path');
 const fs = require('fs');
