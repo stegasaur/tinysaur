@@ -4,9 +4,9 @@ const crypto = require('crypto');
 // Create a new pool using the environment variables
 const pool = new Pool({
   connectionString: process.env.DATABASE_URL,
-  ssl: {
-    rejectUnauthorized: false
-  }
+  // ssl: {
+  //   rejectUnauthorized: false
+  // }
 });
 
 // Function to initialize the database and create tables
