@@ -37,5 +37,10 @@ module.exports = {
         'no-console': 'off'
       }
     }
+  ],
+  ignores: [
+    'node_modules',
+    'public/dist',
+    'coverage'
   ]
 };
