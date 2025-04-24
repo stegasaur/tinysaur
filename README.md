@@ -1,4 +1,4 @@
-# URL Shortener
+# tinysaur
 
 A URL shortener application built with Vue.js on the frontend and Node.js with Express on the backend. This application allows users to shorten long URLs and provides a simple, shareable link.
 

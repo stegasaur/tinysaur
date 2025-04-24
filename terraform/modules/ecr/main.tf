@@ -1,5 +1,5 @@
 resource "aws_ecr_repository" "app" {
-  name                 = "urltiny-${var.environment}"
+  name                 = "${var.project_name}-${var.environment}"
   image_tag_mutability = "MUTABLE"
 
   image_scanning_configuration {
@@ -11,7 +11,7 @@ resource "aws_ecr_repository" "app" {
   }
 
   tags = {
-    Name        = "urltiny-${var.environment}"
+    Name        = "${var.project_name}-${var.environment}"
     Environment = var.environment
   }
 }

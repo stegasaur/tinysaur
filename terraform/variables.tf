@@ -1,7 +1,6 @@
 variable "project_name" {
   description = "Name of the project"
   type        = string
-  default     = "urltiny"
 }
 
 variable "environment" {
@@ -58,12 +57,6 @@ variable "db_username" {
   description = "Database master username"
   type        = string
   default     = "urltiny_admin"
-  sensitive   = true
-}
-
-variable "db_password" {
-  description = "Database master password"
-  type        = string
   sensitive   = true
 }
 

@@ -1,17 +1,17 @@
 # Create CloudWatch Log Group
 resource "aws_cloudwatch_log_group" "app" {
-  name              = "/ecs/urltiny-${var.environment}"
+  name              = "/ecs/${var.project_name}-${var.environment}"
   retention_in_days = var.log_retention_in_days
 
   tags = {
-    Name        = "urltiny-${var.environment}-logs"
+    Name        = "${var.project_name}-${var.environment}-logs"
     Environment = var.environment
   }
 }
 
 # Create ECS Cluster
 resource "aws_ecs_cluster" "main" {
-  name = "urltiny-${var.environment}-cluster"
+  name = "${var.project_name}-${var.environment}-cluster"
 
   setting {
     name  = "containerInsights"
@@ -19,14 +19,14 @@ resource "aws_ecs_cluster" "main" {
   }
 
   tags = {
-    Name        = "urltiny-${var.environment}-cluster"
+    Name        = "${var.project_name}-${var.environment}-cluster"
     Environment = var.environment
   }
 }
 
 # Create ECS Task Execution Role
 resource "aws_iam_role" "ecs_task_execution_role" {
-  name = "urltiny-${var.environment}-task-execution-role"
+  name = "${var.project_name}-${var.environment}-task-execution-role"
 
   assume_role_policy = jsonencode({
     Version = "2012-10-17"
@@ -42,7 +42,7 @@ resource "aws_iam_role" "ecs_task_execution_role" {
   })
 
   tags = {
-    Name        = "urltiny-${var.environment}-task-execution-role"
+    Name        = "${var.project_name}-${var.environment}-task-execution-role"
     Environment = var.environment
   }
 }
@@ -55,7 +55,7 @@ resource "aws_iam_role_policy_attachment" "ecs_task_execution_role_policy" {
 
 # Create ECS Task Definition
 resource "aws_ecs_task_definition" "app" {
-  family                   = "urltiny-${var.environment}-task"
+  family                   = "${var.project_name}-${var.environment}-task"
   network_mode             = "awsvpc"
   requires_compatibilities = ["FARGATE"]
   cpu                      = var.container_cpu
@@ -64,10 +64,11 @@ resource "aws_ecs_task_definition" "app" {
 
   container_definitions = jsonencode([
     {
-      name      = "urltiny-container"
-      image     = var.ecr_repository_url
+      name      = "${var.project_name}-container"
+      # image     = var.ecr_repository_url
+      image = "crccheck/hello-world"
       essential = true
-      
+
       portMappings = [
         {
           containerPort = var.container_port
@@ -75,7 +76,7 @@ resource "aws_ecs_task_definition" "app" {
           protocol      = "tcp"
         }
       ]
-      
+
       environment = [
         {
           name  = "NODE_ENV"
@@ -86,14 +87,14 @@ resource "aws_ecs_task_definition" "app" {
           value = tostring(var.container_port)
         }
       ]
-      
-      secrets = [
-        {
-          name      = "DATABASE_URL"
-          valueFrom = var.database_url_secret_arn
-        }
-      ]
-      
+
+      # secrets = [
+      #   {
+      #     name      = "DATABASE_URL"
+      #     valueFrom = var.database_url_secret_arn
+      #   }
+      # ]
+
       logConfiguration = {
         logDriver = "awslogs"
         options = {
@@ -106,14 +107,14 @@ resource "aws_ecs_task_definition" "app" {
   ])
 
   tags = {
-    Name        = "urltiny-${var.environment}-task"
+    Name        = "${var.project_name}-${var.environment}-task"
     Environment = var.environment
   }
 }
 
 # Create Application Load Balancer
 resource "aws_lb" "main" {
-  name               = "urltiny-${var.environment}-alb"
+  name               = "${var.project_name}-${var.environment}-alb"
   internal           = false
   load_balancer_type = "application"
   security_groups    = [var.alb_security_group_id]
@@ -122,19 +123,19 @@ resource "aws_lb" "main" {
   enable_deletion_protection = var.environment == "prod" ? true : false
 
   tags = {
-    Name        = "urltiny-${var.environment}-alb"
+    Name        = "${var.project_name}-${var.environment}-alb"
     Environment = var.environment
   }
 }
 
 # Create Target Group
 resource "aws_lb_target_group" "app" {
-  name        = "urltiny-${var.environment}-tg"
+  name        = "${var.project_name}-${var.environment}-tg"
   port        = var.container_port
   protocol    = "HTTP"
   vpc_id      = var.vpc_id
   target_type = "ip"
-  
+
   health_check {
     enabled             = true
     interval            = 30
@@ -148,7 +149,7 @@ resource "aws_lb_target_group" "app" {
   }
 
   tags = {
-    Name        = "urltiny-${var.environment}-tg"
+    Name        = "${var.project_name}-${var.environment}-tg"
     Environment = var.environment
   }
 
@@ -165,7 +166,7 @@ resource "aws_lb_listener" "http" {
 
   default_action {
     type = var.enable_https ? "redirect" : "forward"
-    
+
     dynamic "redirect" {
       for_each = var.enable_https ? [1] : []
       content {
@@ -174,7 +175,7 @@ resource "aws_lb_listener" "http" {
         status_code = "HTTP_301"
       }
     }
-    
+
     dynamic "forward" {
       for_each = var.enable_https ? [] : [1]
       content {
@@ -189,7 +190,7 @@ resource "aws_lb_listener" "http" {
 # Create HTTPS Listener if HTTPS is enabled
 resource "aws_lb_listener" "https" {
   count = var.enable_https ? 1 : 0
-  
+
   load_balancer_arn = aws_lb.main.arn
   port              = 443
   protocol          = "HTTPS"
@@ -204,7 +205,7 @@ resource "aws_lb_listener" "https" {
 
 # Create ECS Service
 resource "aws_ecs_service" "app" {
-  name                               = "urltiny-${var.environment}-service"
+  name                               = "${var.project_name}-${var.environment}-service"
   cluster                            = aws_ecs_cluster.main.id
   task_definition                    = aws_ecs_task_definition.app.arn
   desired_count                      = var.desired_count
@@ -220,7 +221,7 @@ resource "aws_ecs_service" "app" {
 
   load_balancer {
     target_group_arn = aws_lb_target_group.app.arn
-    container_name   = "urltiny-container"
+    container_name   = "${var.project_name}-container"
     container_port   = var.container_port
   }
 
@@ -230,11 +231,24 @@ resource "aws_ecs_service" "app" {
   }
 
   tags = {
-    Name        = "urltiny-${var.environment}-service"
+    Name        = "${var.project_name}-${var.environment}-service"
     Environment = var.environment
   }
 
   lifecycle {
     ignore_changes = [desired_count]
+  }
+}
+
+# Create route53 alias record to the application load balancer
+resource "aws_route53_record" "app" {
+  zone_id = var.zone_id
+  name    = var.domain_name
+  type    = "A"
+
+  alias {
+    name                   = aws_lb.main.dns_name
+    zone_id                = aws_lb.main.zone_id
+    evaluate_target_health = true
   }
 }

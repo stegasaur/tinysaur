@@ -1,3 +1,8 @@
+variable "project_name" {
+  description = "Name of the project"
+  type        = string
+}
+
 variable "environment" {
   description = "Environment (dev, staging, prod)"
   type        = string
@@ -83,4 +88,14 @@ variable "certificate_arn" {
   description = "ARN of the ACM certificate for HTTPS"
   type        = string
   default     = ""
+}
+
+variable "zone_id" {
+  description = "The ID of the Route 53 hosted zone"
+  type        = string
+}
+
+variable "domain_name" {
+  description = "Domain name for the application"
+  type        = string
 }

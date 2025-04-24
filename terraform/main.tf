@@ -1,21 +1,35 @@
 provider "aws" {
   region = var.aws_region
+  profile = "tinysaur"
+}
+
+terraform {
+  backend "s3" {
+    bucket = "stegasaur"
+    key    = "tinysaur/terraform/state"
+    profile = "stegasaur"
+  }
+}
+
+resource "random_password" "password" {
+  length           = 16
+  special          = false
 }
 
 # Create AWS Secrets Manager secret for database URL
 resource "aws_secretsmanager_secret" "database_url" {
-  name        = "urltiny-${var.environment}-db-url"
-  description = "Database URL for UrlTiny application"
+  name        = "${var.project_name}-${var.environment}-db-url"
+  description = "Database URL for tinysaur application"
 
   tags = {
-    Name        = "urltiny-${var.environment}-db-url"
+    Name        = "${var.project_name}-${var.environment}-db-url"
     Environment = var.environment
   }
 }
 
 resource "aws_secretsmanager_secret_version" "database_url" {
   secret_id     = aws_secretsmanager_secret.database_url.id
-  secret_string = "postgresql://${var.db_username}:${var.db_password}@${module.rds.db_endpoint}/${var.db_name}"
+  secret_string = "postgresql://${var.db_username}:${random_password.password.result}@${module.rds.db_endpoint}/${var.db_name}"
 }
 
 # VPC Module
@@ -35,6 +49,7 @@ module "vpc" {
 module "security_groups" {
   source = "./modules/security_groups"
 
+  project_name = var.project_name
   vpc_id      = module.vpc.vpc_id
   environment = var.environment
 }
@@ -43,12 +58,13 @@ module "security_groups" {
 module "rds" {
   source = "./modules/rds"
 
+  project_name           = var.project_name
   environment           = var.environment
   db_name               = var.db_name
   db_username           = var.db_username
-  db_password           = var.db_password
+  db_password           = random_password.password.result
   db_instance_class     = var.db_instance_class
-  database_subnet_ids   = module.vpc.database_subnet_ids
+  database_subnet_ids   = module.vpc.private_subnet_ids
   rds_security_group_id = module.security_groups.rds_sg_id
 }
 
@@ -56,6 +72,7 @@ module "rds" {
 module "ecr" {
   source = "./modules/ecr"
 
+  project_name = var.project_name
   environment = var.environment
 }
 
@@ -63,6 +80,7 @@ module "ecr" {
 module "ecs" {
   source = "./modules/ecs"
 
+  project_name             = var.project_name
   environment              = var.environment
   aws_region               = var.aws_region
   vpc_id                   = module.vpc.vpc_id
@@ -79,5 +97,16 @@ module "ecs" {
   log_retention_in_days    = var.log_retention_in_days
   health_check_path        = var.health_check_path
   enable_https             = var.enable_https
-  certificate_arn          = var.certificate_arn
+  certificate_arn          = module.dns.acm_certificate_arn
+  domain_name              = var.domain_name
+  zone_id = module.dns.zone_id
+}
+
+# Hosted Zone and DNS Record Module
+
+module "dns" {
+  source = "./modules/dns"
+
+  domain_name = var.domain_name
+  environment = var.environment
 }
