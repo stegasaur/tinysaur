@@ -1,6 +1,6 @@
 # Security Group for the Application Load Balancer
 resource "aws_security_group" "alb" {
-  name        = "urltiny-${var.environment}-alb-sg"
+  name        = "${var.project_name}-${var.environment}-alb-sg"
   description = "Security group for the ALB"
   vpc_id      = var.vpc_id
 
@@ -29,14 +29,14 @@ resource "aws_security_group" "alb" {
   }
 
   tags = {
-    Name        = "urltiny-${var.environment}-alb-sg"
+    Name        = "${var.project_name}-${var.environment}-alb-sg"
     Environment = var.environment
   }
 }
 
 # Security Group for ECS tasks
 resource "aws_security_group" "ecs" {
-  name        = "urltiny-${var.environment}-ecs-sg"
+  name        = "${var.project_name}-${var.environment}-ecs-sg"
   description = "Security group for ECS tasks"
   vpc_id      = var.vpc_id
 
@@ -57,14 +57,14 @@ resource "aws_security_group" "ecs" {
   }
 
   tags = {
-    Name        = "urltiny-${var.environment}-ecs-sg"
+    Name        = "${var.project_name}-${var.environment}-ecs-sg"
     Environment = var.environment
   }
 }
 
 # Security Group for RDS
 resource "aws_security_group" "rds" {
-  name        = "urltiny-${var.environment}-rds-sg"
+  name        = "${var.project_name}-${var.environment}-rds-sg"
   description = "Security group for RDS instance"
   vpc_id      = var.vpc_id
 
@@ -85,7 +85,7 @@ resource "aws_security_group" "rds" {
   }
 
   tags = {
-    Name        = "urltiny-${var.environment}-rds-sg"
+    Name        = "${var.project_name}-${var.environment}-rds-sg"
     Environment = var.environment
   }
 }

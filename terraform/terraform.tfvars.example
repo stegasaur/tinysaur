@@ -1,4 +1,4 @@
-project_name    = "urltiny"
+project_name    = "tinysaur"
 environment     = "dev"
 aws_region      = "us-east-1"
 
@@ -10,8 +10,8 @@ private_subnet_cidrs  = ["10.0.3.0/24", "10.0.4.0/24"]
 database_subnet_cidrs = ["10.0.5.0/24", "10.0.6.0/24"]
 
 # RDS Configuration
-db_name           = "urltinydb"
-db_username       = "urltiny_admin"
+db_name           = "tinysaurdb"
+db_username       = "tinysaur_admin"
 db_password       = "YourStrongPasswordHere" # Change this!
 db_instance_class = "db.t3.micro"
 
@@ -24,6 +24,6 @@ log_retention_in_days = 30
 health_check_path    = "/"
 
 # Domain and HTTPS Configuration (optional)
-# domain_name      = "urltiny.example.com"
+# domain_name      = "tinysaur.example.com"
 # certificate_arn  = "arn:aws:acm:us-east-1:123456789012:certificate/abcd1234-ef56-gh78-ij90-klmnopqrstuv"
 # enable_https     = true
