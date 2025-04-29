@@ -112,3 +112,11 @@ module "dns" {
   domain_name = var.domain_name
   environment = var.environment
 }
+
+# Pipeline Module
+module "pipeline" {
+  source = "./modules/pipeline"
+
+  environment                 = var.environment
+  project_name                = var.project_name
+}
