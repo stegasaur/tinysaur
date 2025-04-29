@@ -4,13 +4,13 @@ const fs = require('fs');
 
 async function buildApp() {
   console.log('Building frontend application...');
-  
+
   // Create dist directory if it doesn't exist
-  const distDir = path.join(__dirname, 'public/dist');
+  const distDir = path.join(__dirname, 'dist');
   if (!fs.existsSync(distDir)) {
     fs.mkdirSync(distDir, { recursive: true });
   }
-  
+
   try {
     // Run Vite build
     await build();

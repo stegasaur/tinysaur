@@ -1,4 +1,4 @@
-FROM node:18-alpine AS build
+FROM node:22.14.0-alpine AS build
 
 WORKDIR /app
 
@@ -13,7 +13,7 @@ COPY . .
 RUN npm run build
 
 # Production stage
-FROM node:18-alpine
+FROM node:22.14.0-alpine
 
 WORKDIR /app
 
@@ -27,10 +27,13 @@ COPY package*.json ./
 RUN npm ci --only=production
 
 # Copy built files from the build stage
-COPY --from=build /app/public/dist ./public/dist
+COPY --from=build /app/vite.config.js ./
+COPY --from=build /app/dist ./dist
+COPY --from=build /app/public ./public
 COPY --from=build /app/db ./db
 COPY --from=build /app/server ./server
 COPY --from=build /app/shared ./shared
+COPY --from=build /app/src ./src
 
 # Copy server entry point
 COPY index.js ./

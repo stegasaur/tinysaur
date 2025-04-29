@@ -11,7 +11,7 @@ app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
 // Serve static files
-app.use(express.static(path.join(__dirname, '../../public')));
+app.use(express.static(path.join(__dirname, '../../dist')));
 
 // Register API routes
 app.use('/api', routes);
@@ -21,13 +21,13 @@ app.get('/:hash', routes.redirectToOriginalUrl);
 
 // Catch-all route to return the main index.html for client-side routing
 app.get('*', (req, res) => {
-  res.sendFile(path.join(__dirname, '../../public/index.html'));
+  res.sendFile(path.join(__dirname, '../../dist/index.html'));
 });
 
 // Initialize the database before starting the server
 const startServer = async () => {
   const dbInitialized = await initializeDatabase();
-  
+
   if (dbInitialized) {
     app.listen(PORT, '0.0.0.0', () => {
       console.log(`Server is running on http://0.0.0.0:${PORT}`);

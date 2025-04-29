@@ -6,7 +6,7 @@ import path from 'path';
 export default defineConfig({
   plugins: [vue()],
   build: {
-    outDir: 'public/dist',
+    outDir: 'dist',
     assetsDir: '',
     rollupOptions: {
       input: 'src/frontend/main.js',

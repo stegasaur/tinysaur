@@ -7,17 +7,17 @@ const fs = require('fs');
 async function buildAndStart() {
   try {
     console.log('Building frontend application...');
-    
+
     // Create dist directory if it doesn't exist
-    const distDir = path.join(__dirname, 'public/dist');
+    const distDir = path.join(__dirname, 'dist');
     if (!fs.existsSync(distDir)) {
       fs.mkdirSync(distDir, { recursive: true });
     }
-    
+
     // Build the frontend
     await build();
     console.log('Build completed successfully!');
-    
+
     // Start the server
     await startServer();
   } catch (error) {

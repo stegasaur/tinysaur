@@ -1,6 +1,8 @@
 provider "aws" {
   region = var.aws_region
   profile = "tinysaur"
+  allowed_account_ids = [ "551128382200" ]
+
 }
 
 terraform {
