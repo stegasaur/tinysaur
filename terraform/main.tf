@@ -112,3 +112,12 @@ module "dns" {
   domain_name = var.domain_name
   environment = var.environment
 }
+
+# Pipeline Module
+module "pipeline" {
+  source = "./modules/pipeline"
+
+  codecommit_repo_name        = var.codecommit_repo_name
+  codecommit_repo_description = var.codecommit_repo_description
+  environment                 = var.environment
+}
