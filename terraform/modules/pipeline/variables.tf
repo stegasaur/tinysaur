@@ -1,9 +1,9 @@
-variable "codecommit_repo_name" {
-  description = "Name of the CodeCommit repository"
+variable "project_name" {
+  description = "Name of the project"
   type        = string
 }
 
-variable "codecommit_repo_description" {
-  description = "Description of the CodeCommit repository"
+variable "environment" {
+  description = "Environment (dev, staging, prod)"
   type        = string
 }

@@ -1,9 +1,8 @@
 resource "aws_codecommit_repository" "repo" {
-  repository_name = var.codecommit_repo_name
-  description     = var.codecommit_repo_description
+  repository_name = "${var.project_name}-${var.environment}"
 
   tags = {
-    Name        = var.codecommit_repo_name
+    Name        = var.project_name
     Environment = var.environment
   }
 }
