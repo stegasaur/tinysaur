@@ -203,8 +203,8 @@ resource "aws_ecs_task_definition" "app" {
           value = tostring(var.container_port)
         },
         {
-          name = "CA_CERT",
-          value = base64decode(var.ca_cert)
+          name = "CA_CERT_PATH",
+          value = var.ca_cert_path
         }
       ]
 

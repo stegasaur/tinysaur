@@ -100,8 +100,8 @@ variable "domain_name" {
   type        = string
 }
 
-variable "ca_cert" {
-  description = "CA certificate for the database connection"
+variable "ca_cert_path" {
+  description = "Path to CA certificate for the database connection"
   type        = string
   default     = ""
 }

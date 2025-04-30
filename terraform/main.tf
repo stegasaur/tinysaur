@@ -77,11 +77,6 @@ module "ecr" {
   environment = var.environment
 }
 
-# use file data source to get CA cert from global-bundle.pem
-data "local_file" "ca_cert" {
-  filename = "${path.module}/global-bundle.pem"
-}
-
 # ECS Module
 module "ecs" {
   source = "./modules/ecs"
@@ -106,7 +101,6 @@ module "ecs" {
   certificate_arn          = module.dns.acm_certificate_arn
   domain_name              = var.domain_name
   zone_id = module.dns.zone_id
-  ca_cert = data.local_file.ca_cert.content
 }
 
 # Hosted Zone and DNS Record Module
@@ -127,7 +121,6 @@ module "pipeline" {
   github_owner     = var.github_owner
   github_repo      = var.github_repo
   github_branch    = var.github_branch
-  github_token     = var.github_token
   ecr_repository_name = module.ecr.repository_name
   ecr_repository_arn = module.ecr.repository_arn
   ecr_repository_url = module.ecr.repository_url
