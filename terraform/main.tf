@@ -2,7 +2,6 @@ provider "aws" {
   region = var.aws_region
   profile = "tinysaur"
   allowed_account_ids = [ "551128382200" ]
-
 }
 
 terraform {
@@ -78,6 +77,11 @@ module "ecr" {
   environment = var.environment
 }
 
+# use file data source to get CA cert from global-bundle.pem
+data "local_file" "ca_cert" {
+  filename = "${path.module}/global-bundle.pem"
+}
+
 # ECS Module
 module "ecs" {
   source = "./modules/ecs"
@@ -102,6 +106,7 @@ module "ecs" {
   certificate_arn          = module.dns.acm_certificate_arn
   domain_name              = var.domain_name
   zone_id = module.dns.zone_id
+  ca_cert = data.local_file.ca_cert.content
 }
 
 # Hosted Zone and DNS Record Module

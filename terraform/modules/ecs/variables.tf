@@ -99,3 +99,9 @@ variable "domain_name" {
   description = "Domain name for the application"
   type        = string
 }
+
+variable "ca_cert" {
+  description = "CA certificate for the database connection"
+  type        = string
+  default     = ""
+}

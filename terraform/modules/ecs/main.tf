@@ -47,10 +47,124 @@ resource "aws_iam_role" "ecs_task_execution_role" {
   }
 }
 
+# create IAM policy for ECS Task Execution Role
+resource "aws_iam_policy" "ecs_task_execution_role_policy" {
+  name        = "${var.project_name}-${var.environment}-task-execution-policy"
+  description = "Policy for ECS Task Execution"
+
+  policy = jsonencode({
+    Version = "2012-10-17"
+    Statement = [
+      {
+        Action = [
+          "ecr:GetAuthorizationToken",
+          "ecr:BatchCheckLayerAvailability",
+          "ecr:GetDownloadUrlForLayer",
+          "ecr:BatchGetImage",
+          "logs:CreateLogStream",
+          "logs:PutLogEvents",
+          "logs:CreateLogGroup",
+          "logs:DescribeLogStreams",
+        ]
+        Resource = "*"
+        Effect   = "Allow"
+      },
+      # addd secrets manager permissions
+      {
+        Action = [
+          "secretsmanager:GetSecretValue",
+          "secretsmanager:DescribeSecret",
+          "secretsmanager:ListSecrets"
+        ]
+        Resource = var.database_url_secret_arn
+        Effect   = "Allow"
+      }
+    ]
+  })
+
+  tags = {
+    Name        = "${var.project_name}-${var.environment}-task-execution-policy"
+    Environment = var.environment
+  }
+}
+
 # Attach the AmazonECSTaskExecutionRolePolicy to the ECS Task Execution Role
 resource "aws_iam_role_policy_attachment" "ecs_task_execution_role_policy" {
   role       = aws_iam_role.ecs_task_execution_role.name
-  policy_arn = "arn:aws:iam::aws:policy/service-role/AmazonECSTaskExecutionRolePolicy"
+  policy_arn = aws_iam_policy.ecs_task_execution_role_policy.arn
+}
+
+# create ecs task role
+resource "aws_iam_role" "ecs_task_role" {
+  name = "${var.project_name}-${var.environment}-task-role"
+
+  assume_role_policy = jsonencode({
+    Version = "2012-10-17"
+    Statement = [
+      {
+        Action = "sts:AssumeRole"
+        Effect = "Allow"
+        Principal = {
+          Service = "ecs-tasks.amazonaws.com"
+        },
+        Condition = {
+          ArnLike = {
+            "aws:SourceArn": "arn:aws:ecs:${data.aws_region.current.name}:${data.aws_caller_identity.current.account_id}:*"
+          },
+          StringEquals = {
+            "aws:SourceAccount": "${data.aws_caller_identity.current.account_id}"
+          }
+        }
+      }
+    ]
+  })
+
+  tags = {
+    Name        = "${var.project_name}-${var.environment}-task-role"
+    Environment = var.environment
+  }
+}
+
+# create ecs task role policy
+resource "aws_iam_policy" "ecs_task_role_policy" {
+  name        = "${var.project_name}-${var.environment}-task-policy"
+  description = "Policy for ECS Task"
+
+  policy = jsonencode({
+    Version = "2012-10-17"
+    Statement = [
+      {
+        Action = [
+          "secretsmanager:GetSecretValue",
+          "secretsmanager:DescribeSecret",
+          "secretsmanager:ListSecrets"
+        ]
+        Resource = var.database_url_secret_arn
+        Effect   = "Allow"
+      },
+      # ecs exec permissions
+      {
+        Action = [
+          "ssmmessages:CreateControlChannel",
+          "ssmmessages:CreateDataChannel",
+          "ssmmessages:OpenControlChannel",
+          "ssmmessages:OpenDataChannel"
+        ]
+        Resource = "*"
+        Effect   = "Allow"
+      }
+    ]
+  })
+
+  tags = {
+    Name        = "${var.project_name}-${var.environment}-task-policy"
+    Environment = var.environment
+  }
+}
+# Attach the ECS Task Role Policy to the ECS Task Role
+resource "aws_iam_role_policy_attachment" "ecs_task_role_policy" {
+  role       = aws_iam_role.ecs_task_role.name
+  policy_arn = aws_iam_policy.ecs_task_role_policy.arn
 }
 
 # Create ECS Task Definition
@@ -61,12 +175,14 @@ resource "aws_ecs_task_definition" "app" {
   cpu                      = var.container_cpu
   memory                   = var.container_memory
   execution_role_arn       = aws_iam_role.ecs_task_execution_role.arn
+  task_role_arn = aws_iam_role.ecs_task_role.arn
 
   container_definitions = jsonencode([
     {
-      name      = "${var.project_name}-container"
-      # image     = var.ecr_repository_url
-      image = "crccheck/hello-world"
+      name      = var.project_name
+      image     = var.ecr_repository_url
+      # hello world container for testing
+      # image = "crccheck/hello-world"
       essential = true
 
       portMappings = [
@@ -85,15 +201,19 @@ resource "aws_ecs_task_definition" "app" {
         {
           name  = "PORT"
           value = tostring(var.container_port)
+        },
+        {
+          name = "CA_CERT",
+          value = base64decode(var.ca_cert)
         }
       ]
 
-      # secrets = [
-      #   {
-      #     name      = "DATABASE_URL"
-      #     valueFrom = var.database_url_secret_arn
-      #   }
-      # ]
+      secrets = [
+        {
+          name      = "DATABASE_URL"
+          valueFrom = var.database_url_secret_arn
+        }
+      ]
 
       logConfiguration = {
         logDriver = "awslogs"
@@ -210,7 +330,8 @@ resource "aws_ecs_service" "app" {
   task_definition                    = aws_ecs_task_definition.app.arn
   desired_count                      = var.desired_count
   launch_type                        = "FARGATE"
-  health_check_grace_period_seconds  = 60
+  enable_execute_command             = true
+  health_check_grace_period_seconds  = 120
   propagate_tags                     = "SERVICE"
 
   network_configuration {
@@ -221,7 +342,7 @@ resource "aws_ecs_service" "app" {
 
   load_balancer {
     target_group_arn = aws_lb_target_group.app.arn
-    container_name   = "${var.project_name}-container"
+    container_name   = var.project_name
     container_port   = var.container_port
   }
 
@@ -252,3 +373,8 @@ resource "aws_route53_record" "app" {
     evaluate_target_health = true
   }
 }
+
+# Get current AWS region
+data "aws_region" "current" {}
+
+data "aws_caller_identity" "current" {}

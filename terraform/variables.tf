@@ -144,3 +144,10 @@ variable "github_token" {
   type        = string
   sensitive   = true
 }
+
+variable "ca_cert" {
+  description = "CA certificate for the database connection"
+  type        = string
+  default     = ""
+
+}
