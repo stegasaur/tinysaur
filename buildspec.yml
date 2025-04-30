@@ -18,7 +18,7 @@ phases:
       - docker push $ECR_REPOSITORY_URL:$IMAGE_TAG
       - docker push $ECR_REPOSITORY_URL:latest
       - echo Writing image definitions file...
-      - echo '[{"name":"tinysaur","imageUri":"'$ECR_REPOSITORY_URL:$IMAGE_TAG'"}]' > imagedefinitions.json
+      - echo "[{\"name\":\"app\",\"imageUri\":\"${ECR_REPOSITORY_URL}:${IMAGE_TAG}\"}]" > imagedefinitions.json
 
 artifacts:
   files:
