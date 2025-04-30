@@ -1,0 +1,28 @@
+version: 0.2
+
+phases:
+  pre_build:
+    commands:
+      - echo Logging in to Amazon ECR...
+      - aws ecr get-login-password --region $AWS_DEFAULT_REGION | docker login --username AWS --password-stdin $(echo $ECR_REPOSITORY_URL | cut -d/ -f1)
+      - COMMIT_HASH=$(echo $CODEBUILD_RESOLVED_SOURCE_VERSION | cut -c 1-7)
+      - IMAGE_TAG=${COMMIT_HASH:=latest}
+  build:
+    commands:
+      - echo Building the Docker image...
+      - docker build -t $ECR_REPOSITORY_URL:$IMAGE_TAG .
+      - docker tag $ECR_REPOSITORY_URL:$IMAGE_TAG $ECR_REPOSITORY_URL:latest
+  post_build:
+    commands:
+      - echo Pushing the Docker image...
+      - docker push $ECR_REPOSITORY_URL:$IMAGE_TAG
+      - docker push $ECR_REPOSITORY_URL:latest
+      - echo Writing image definitions file...
+      - echo '[{"name":"app","imageUri":"'$ECR_REPOSITORY_URL:$IMAGE_TAG'"}]' > imagedefinitions.json
+
+artifacts:
+  files:
+    - imagedefinitions.json
+    - appspec.yml
+    - taskdef.json
+  discard-paths: yes
