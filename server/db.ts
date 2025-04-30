@@ -1,4 +1,3 @@
-import * as fs from 'fs';
 import { Pool } from 'pg';
 import { drizzle } from 'drizzle-orm/node-postgres';
 import * as schema from '../shared/schema';
@@ -8,12 +7,22 @@ if (!process.env.DATABASE_URL) {
     "DATABASE_URL must be set. Did you forget to provision a database?",
   );
 }
+const caCertPath = process.env.CA_CERT_PATH;
+let caCert;
+if (caCertPath) {
+  let caCertFullPath = require('path').resolve(process.cwd(), caCertPath);
+  try {
+    caCert = require('fs').readFileSync(caCertPath);
+  } catch (error) {
+    console.error(`Error reading CA certificate from ${caCertPath}:`, error);
+  }
+}
 
 export const pool = new Pool({
   connectionString: process.env.DATABASE_URL,
   ssl: {
     rejectUnauthorized: false,
-    ca: process.env.CA_CERT,
+    ca: caCert
   }
 });
 

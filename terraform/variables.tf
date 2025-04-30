@@ -139,15 +139,8 @@ variable "github_branch" {
   default     = "main"
 }
 
-variable "github_token" {
-  description = "GitHub OAuth token"
-  type        = string
-  sensitive   = true
-}
-
-variable "ca_cert" {
-  description = "CA certificate for the database connection"
+variable "ca_cert_path" {
+  description = "Path to CA certificate for the database connection"
   type        = string
   default     = ""
-
 }

@@ -24,12 +24,6 @@ variable "github_branch" {
   default     = "main"
 }
 
-variable "github_token" {
-  description = "GitHub OAuth token"
-  type        = string
-  sensitive   = true
-}
-
 variable "ecr_repository_name" {
   description = "ECR repository URL"
   type        = string
