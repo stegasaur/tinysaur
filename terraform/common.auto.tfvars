@@ -22,3 +22,8 @@ health_check_path    = "/"
 
 # Domain and HTTPS Configuration
 enable_https     = true
+
+# Github settings
+github_owner     = "stegasaur"
+github_repo      = "tinysaur"
+github_branch    = "main"

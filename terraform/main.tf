@@ -117,6 +117,13 @@ module "dns" {
 module "pipeline" {
   source = "./modules/pipeline"
 
-  environment                 = var.environment
-  project_name                = var.project_name
+  project_name     = var.project_name
+  environment      = var.environment
+  github_owner     = var.github_owner
+  github_repo      = var.github_repo
+  github_branch    = var.github_branch
+  github_token     = var.github_token
+  ecr_repository_url = module.ecr.repository_url
+  ecs_cluster_name = module.ecs.cluster_name
+  ecs_service_name = module.ecs.service_name
 }

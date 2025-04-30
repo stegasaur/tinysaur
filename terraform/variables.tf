@@ -121,3 +121,26 @@ variable "enable_https" {
   type        = bool
   default     = false
 }
+
+# GitHub Variables for CI/CD Pipeline
+variable "github_owner" {
+  description = "GitHub repository owner"
+  type        = string
+}
+
+variable "github_repo" {
+  description = "GitHub repository name"
+  type        = string
+}
+
+variable "github_branch" {
+  description = "GitHub repository branch"
+  type        = string
+  default     = "main"
+}
+
+variable "github_token" {
+  description = "GitHub OAuth token"
+  type        = string
+  sensitive   = true
+}
