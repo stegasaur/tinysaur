@@ -35,3 +35,14 @@ resource "aws_ecr_lifecycle_policy" "app" {
     }]
   })
 }
+
+resource "local_file" "imagedefinitions" {
+  content  = jsonencode([
+    {
+      name        = "${var.project_name}"
+      imageUri    = "${aws_ecr_repository.app.repository_url}:latest"
+    }
+  ])
+
+  filename = "${path.root}/../imagedefinitions.json"
+}
