@@ -30,8 +30,18 @@ variable "github_token" {
   sensitive   = true
 }
 
-variable "ecr_repository_url" {
+variable "ecr_repository_name" {
   description = "ECR repository URL"
+  type        = string
+}
+
+variable "ecr_repository_arn" {
+  description = "ECR repository ARN"
+  type        = string
+}
+
+variable "ecr_repository_url" {
+  description = "ECR repository URl"
   type        = string
 }
 

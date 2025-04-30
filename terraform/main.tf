@@ -123,6 +123,8 @@ module "pipeline" {
   github_repo      = var.github_repo
   github_branch    = var.github_branch
   github_token     = var.github_token
+  ecr_repository_name = module.ecr.repository_name
+  ecr_repository_arn = module.ecr.repository_arn
   ecr_repository_url = module.ecr.repository_url
   ecs_cluster_name = module.ecs.cluster_name
   ecs_service_name = module.ecs.service_name
