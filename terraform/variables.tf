@@ -100,7 +100,7 @@ variable "log_retention_in_days" {
 variable "health_check_path" {
   description = "Health check path for the ALB target group"
   type        = string
-  default     = "/"
+  default     = "/__health"
 }
 
 # Domain and HTTPS Configuration

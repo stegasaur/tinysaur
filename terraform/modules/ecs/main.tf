@@ -218,6 +218,7 @@ resource "aws_ecs_task_definition" "app" {
   task_role_arn = aws_iam_role.ecs_task_role.arn
   enable_fault_injection = true
 
+
   container_definitions = jsonencode([
     {
       name      = var.project_name
@@ -237,7 +238,7 @@ resource "aws_ecs_task_definition" "app" {
       environment = [
         {
           name  = "NODE_ENV"
-          value = var.environment
+          value = "production"
         },
         {
           name  = "PORT"
@@ -398,6 +399,7 @@ resource "aws_ecs_service" "app" {
   launch_type                        = "FARGATE"
   enable_execute_command             = true
   health_check_grace_period_seconds  = 120
+
   propagate_tags                     = "SERVICE"
 
   network_configuration {

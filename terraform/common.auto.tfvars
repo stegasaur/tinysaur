@@ -18,7 +18,7 @@ container_cpu        = 256
 container_memory     = 512
 desired_count        = 2
 log_retention_in_days = 30
-health_check_path    = "/"
+health_check_path    = "/__health"
 
 # Domain and HTTPS Configuration
 enable_https     = true

@@ -16,7 +16,8 @@ if (process.env.NODE_ENV !== 'production') {
 } else {
   // Ensure logs go to stdout for container environments like ECS
   app.use(morgan('combined', {
-    stream: process.stdout
+    stream: process.stdout,
+    skip: function (req, res) { return req.path == "/__health"; }
   }));
   // Add a startup log to confirm logging is working
   console.log(`[${new Date().toISOString()}] Morgan logging initialized in production mode`);
@@ -26,12 +27,9 @@ if (process.env.NODE_ENV !== 'production') {
 app.use(express.static(path.join(__dirname, '../../dist')));
 
 // add a health check endpoint and turn off logging for it
-app.use('/__health', (req, res, next) => {
-  if (req.method === 'GET') {
-    // Disable logging for health check
-    req.morganSkip = true;
-  }
-  next();
+app.get('/__health', (req, res, next) => {
+  res.status(200).json({ status: 'ok' });
+  res.end();
 });
 
 // Register API routes
