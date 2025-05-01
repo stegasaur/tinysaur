@@ -14,7 +14,12 @@ app.use(express.urlencoded({ extended: true }));
 if (process.env.NODE_ENV !== 'production') {
   app.use(morgan('dev'));
 } else {
-  app.use(morgan('combined'));
+  // Ensure logs go to stdout for container environments like ECS
+  app.use(morgan('combined', {
+    stream: process.stdout
+  }));
+  // Add a startup log to confirm logging is working
+  console.log(`[${new Date().toISOString()}] Morgan logging initialized in production mode`);
 }
 
 // Serve static files

@@ -148,7 +148,10 @@ resource "aws_iam_policy" "ecs_task_role_policy" {
           "ssmmessages:CreateControlChannel",
           "ssmmessages:CreateDataChannel",
           "ssmmessages:OpenControlChannel",
-          "ssmmessages:OpenDataChannel"
+          "ssmmessages:OpenDataChannel",
+          "ssm:CreateActivation",
+          "ssm:AddTagsToResource",
+          "iam:PassRole"
         ]
         Resource = "*"
         Effect   = "Allow"
@@ -167,6 +170,43 @@ resource "aws_iam_role_policy_attachment" "ecs_task_role_policy" {
   policy_arn = aws_iam_policy.ecs_task_role_policy.arn
 }
 
+# SSM Managed Instance role
+resource "aws_iam_role" "ssm_managed_instance_role" {
+  name = "${var.project_name}-${var.environment}-ssm-managed-instance-role"
+
+  assume_role_policy = jsonencode({
+    Version = "2012-10-17"
+    Statement = [
+      {
+        Action = "sts:AssumeRole"
+        Effect = "Allow"
+        Principal = {
+          Service = "ssm.amazonaws.com"
+        }
+        Condition = {
+          StringEquals = {
+            "aws:SourceAccount":"${data.aws_caller_identity.current.account_id}"
+          },
+          ArnEquals = {
+            "aws:SourceArn":"arn:aws:ssm:${data.aws_region.current.name}:${data.aws_caller_identity.current.account_id}:*"
+          }
+         }
+      }
+    ]
+  })
+
+  tags = {
+    Name        = "${var.project_name}-${var.environment}-ssm-managed-instance-role"
+    Environment = var.environment
+  }
+}
+
+# Attach the AmazonSSMManagedInstanceCore policy to the SSM Managed Instance Role
+resource "aws_iam_role_policy_attachment" "ssm_managed_instance_role_policy" {
+  role       = aws_iam_role.ssm_managed_instance_role.name
+  policy_arn = "arn:aws:iam::aws:policy/AmazonSSMManagedInstanceCore"
+}
+
 # Create ECS Task Definition
 resource "aws_ecs_task_definition" "app" {
   family                   = "${var.project_name}-${var.environment}-task"
@@ -176,11 +216,12 @@ resource "aws_ecs_task_definition" "app" {
   memory                   = var.container_memory
   execution_role_arn       = aws_iam_role.ecs_task_execution_role.arn
   task_role_arn = aws_iam_role.ecs_task_role.arn
+  enable_fault_injection = true
 
   container_definitions = jsonencode([
     {
       name      = var.project_name
-      image     = var.ecr_repository_url
+      image     = "${var.ecr_repository_url}:dev-main"
       # hello world container for testing
       # image = "crccheck/hello-world"
       essential = true
@@ -205,6 +246,10 @@ resource "aws_ecs_task_definition" "app" {
         {
           name = "CA_CERT_PATH",
           value = var.ca_cert_path
+        },
+        {
+          name ="MANAGED_INSTANCE_ROLE_NAME",
+          value ="${aws_iam_role.ssm_managed_instance_role.name}"
         }
       ]
 
@@ -223,6 +268,27 @@ resource "aws_ecs_task_definition" "app" {
           "awslogs-stream-prefix" = "ecs"
         }
       }
+    },
+    {
+      # fis stress test container
+      name      = "amazon-ssm-agent"
+      image     = "public.ecr.aws/amazon-ssm-agent/amazon-ssm-agent:latest"
+      essential = false
+      command = [
+        "/bin/bash",
+        "-c",
+        "set -e; dnf upgrade -y; dnf install jq procps awscli -y; term_handler() { echo \"Deleting SSM activation $ACTIVATION_ID\"; if ! aws ssm delete-activation --activation-id $ACTIVATION_ID --region $ECS_TASK_REGION; then echo \"SSM activation $ACTIVATION_ID failed to be deleted\" 1>&2; fi; MANAGED_INSTANCE_ID=$(jq -e -r .ManagedInstanceID /var/lib/amazon/ssm/registration); echo \"Deregistering SSM Managed Instance $MANAGED_INSTANCE_ID\"; if ! aws ssm deregister-managed-instance --instance-id $MANAGED_INSTANCE_ID --region $ECS_TASK_REGION; then echo \"SSM Managed Instance $MANAGED_INSTANCE_ID failed to be deregistered\" 1>&2; fi; kill -SIGTERM $SSM_AGENT_PID; }; trap term_handler SIGTERM SIGINT; if [[ -z $MANAGED_INSTANCE_ROLE_NAME ]]; then echo \"Environment variable MANAGED_INSTANCE_ROLE_NAME not set, exiting\" 1>&2; exit 1; fi; if ! ps ax | grep amazon-ssm-agent | grep -v grep > /dev/null; then if [[ -n $ECS_CONTAINER_METADATA_URI_V4 ]] ; then echo \"Found ECS Container Metadata, running activation with metadata\"; TASK_METADATA=$(curl \"$${ECS_CONTAINER_METADATA_URI_V4}/task\"); ECS_TASK_AVAILABILITY_ZONE=$(echo $TASK_METADATA | jq -e -r '.AvailabilityZone'); ECS_TASK_ARN=$(echo $TASK_METADATA | jq -e -r '.TaskARN'); ECS_TASK_REGION=$(echo $ECS_TASK_AVAILABILITY_ZONE | sed 's/.$//'); ECS_TASK_AVAILABILITY_ZONE_REGEX='^(af|ap|ca|cn|eu|me|sa|us|us-gov)-(central|north|(north(east|west))|south|south(east|west)|east|west)-[0-9]{1}[a-z]{1}$'; if ! [[ $ECS_TASK_AVAILABILITY_ZONE =~ $ECS_TASK_AVAILABILITY_ZONE_REGEX ]]; then echo \"Error extracting Availability Zone from ECS Container Metadata, exiting\" 1>&2; exit 1; fi; ECS_TASK_ARN_REGEX='^arn:(aws|aws-cn|aws-us-gov):ecs:[a-z0-9-]+:[0-9]{12}:task/[a-zA-Z0-9_-]+/[a-zA-Z0-9]+$'; if ! [[ $ECS_TASK_ARN =~ $ECS_TASK_ARN_REGEX ]]; then echo \"Error extracting Task ARN from ECS Container Metadata, exiting\" 1>&2; exit 1; fi; CREATE_ACTIVATION_OUTPUT=$(aws ssm create-activation --iam-role $MANAGED_INSTANCE_ROLE_NAME --tags Key=ECS_TASK_AVAILABILITY_ZONE,Value=$ECS_TASK_AVAILABILITY_ZONE Key=ECS_TASK_ARN,Value=$ECS_TASK_ARN Key=FAULT_INJECTION_SIDECAR,Value=true --region $ECS_TASK_REGION); ACTIVATION_CODE=$(echo $CREATE_ACTIVATION_OUTPUT | jq -e -r .ActivationCode); ACTIVATION_ID=$(echo $CREATE_ACTIVATION_OUTPUT | jq -e -r .ActivationId); if ! amazon-ssm-agent -register -code $ACTIVATION_CODE -id $ACTIVATION_ID -region $ECS_TASK_REGION; then echo \"Failed to register with AWS Systems Manager (SSM), exiting\" 1>&2; exit 1; fi; amazon-ssm-agent & SSM_AGENT_PID=$!; wait $SSM_AGENT_PID; else echo \"ECS Container Metadata not found, exiting\" 1>&2; exit 1; fi; else echo \"SSM agent is already running, exiting\" 1>&2; exit 1; fi"
+      ],
+      environment = [
+        {
+          name  = "SSM_AGENT_LOG_LEVEL"
+          value = "info"
+        },
+        {
+          name ="MANAGED_INSTANCE_ROLE_NAME",
+          value ="${aws_iam_role.ssm_managed_instance_role.name}"
+        }
+      ]
     }
   ])
 
