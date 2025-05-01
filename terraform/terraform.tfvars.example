@@ -27,3 +27,8 @@ health_check_path    = "/"
 # domain_name      = "tinysaur.example.com"
 # certificate_arn  = "arn:aws:acm:us-east-1:123456789012:certificate/abcd1234-ef56-gh78-ij90-klmnopqrstuv"
 # enable_https     = true
+
+# github settings
+github_owner     = var.github_owner
+github_repo      = var.github_repo
+github_branch    = var.github_branch

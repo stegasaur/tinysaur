@@ -2,13 +2,20 @@ const express = require('express');
 const path = require('path');
 const { initializeDatabase } = require('../../db/schema');
 const routes = require('./routes');
-
+const morgan = require('morgan');
 const app = express();
 const PORT = process.env.PORT || 8000;
 
 // Middleware for parsing JSON and urlencoded form data
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
+
+// Middleware for request logging
+if (process.env.NODE_ENV !== 'production') {
+  app.use(morgan('dev'));
+} else {
+  app.use(morgan('combined'));
+}
 
 // Serve static files
 app.use(express.static(path.join(__dirname, '../../dist')));
