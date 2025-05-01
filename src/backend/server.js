@@ -25,6 +25,15 @@ if (process.env.NODE_ENV !== 'production') {
 // Serve static files
 app.use(express.static(path.join(__dirname, '../../dist')));
 
+// add a health check endpoint and turn off logging for it
+app.use('/__health', (req, res, next) => {
+  if (req.method === 'GET') {
+    // Disable logging for health check
+    req.morganSkip = true;
+  }
+  next();
+});
+
 // Register API routes
 app.use('/api', routes);
 
