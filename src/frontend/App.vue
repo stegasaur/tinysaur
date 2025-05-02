@@ -1,19 +1,19 @@
 <template>
   <div class="container">
     <div class="header">
-      <h1>URL Shortener</h1>
+      <h1>Tinysaur</h1>
       <p>Shorten your long URLs with a single click</p>
     </div>
-    
+
     <div class="url-form">
       <form @submit.prevent="shortenUrl">
         <div class="form-group">
           <label for="urlInput">Enter your URL</label>
-          <input 
-            type="url" 
-            class="form-control url-input" 
-            id="urlInput" 
-            v-model="url" 
+          <input
+            type="url"
+            class="form-control url-input"
+            id="urlInput"
+            v-model="url"
             placeholder="https://example.com"
             required
           >
@@ -21,8 +21,8 @@
             {{ urlError }}
           </div>
         </div>
-        <button 
-          type="submit" 
+        <button
+          type="submit"
           class="btn btn-primary shorten-btn"
           :disabled="isLoading"
         >
@@ -30,7 +30,7 @@
         </button>
       </form>
     </div>
-    
+
     <div v-if="shortenedUrl" class="result-card">
       <h3>Your Shortened URL:</h3>
       <div class="alert alert-success">
@@ -40,7 +40,7 @@
         </button>
       </div>
     </div>
-    
+
     <div v-if="apiError" class="alert alert-danger mt-3">
       {{ apiError }}
     </div>
@@ -77,23 +77,23 @@ export default {
       this.apiError = '';
       this.shortenedUrl = '';
       this.copied = false;
-      
+
       // Validate URL
       if (!this.url) {
         this.urlError = 'Please enter a URL';
         return;
       }
-      
+
       if (!this.validateUrl(this.url)) {
         this.urlError = 'Please enter a valid URL with http:// or https://';
         return;
       }
-      
+
       // Make API request
       this.isLoading = true;
       try {
         const response = await axios.post('/api/shorten', { url: this.url });
-        
+
         if (response.data && response.data.shortUrl) {
           const host = window.location.origin;
           this.shortenedUrl = `${host}/${response.data.shortUrl}`;
