@@ -28,7 +28,7 @@ app.use(express.static(path.join(__dirname, '../../dist')));
 
 // add a health check endpoint and turn off logging for it
 app.get('/__health', (req, res, next) => {
-  res.status(404).json({ status: 'ok' });
+  res.status(200).json({ status: 'ok' });
   res.end();
 });
 
