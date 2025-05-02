@@ -1,7 +1,7 @@
 provider "aws" {
   region = var.aws_region
-  profile = "tinysaur"
-  allowed_account_ids = [ "551128382200" ]
+  profile = var.profile
+  allowed_account_ids = [ "551128382200", "084828602255" ]
 }
 
 terraform {
@@ -104,7 +104,6 @@ module "ecs" {
 }
 
 # Hosted Zone and DNS Record Module
-
 module "dns" {
   source = "./modules/dns"
 

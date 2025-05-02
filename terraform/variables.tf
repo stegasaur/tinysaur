@@ -15,6 +15,11 @@ variable "aws_region" {
   default     = "us-east-1"
 }
 
+variable "profile" {
+  description = "AWS profile to use for authentication"
+  type        = string
+}
+
 # VPC Configuration
 variable "vpc_cidr" {
   description = "CIDR block for the VPC"
